@@ -3,8 +3,7 @@ import logging
 import asyncio
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
-from google import genai
-from google.genai import types
+import google.generativeai as genai
 from dotenv import load_dotenv
 from http.server import HTTPServer, BaseHTTPRequestHandler
 import threading
@@ -28,8 +27,9 @@ if not GEMINI_API_KEY or not TELEGRAM_BOT_TOKEN:
     logger.error("Missing required environment variables")
     exit(1)
 
-# Initialize Gemini client according to official documentation
-client = genai.Client(api_key=GEMINI_API_KEY)
+# Initialize Gemini with stable API (Python 3.8 compatible)
+genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel('gemini-pro')
 
 class TelegramGeminiBot:
     def __init__(self):
@@ -115,14 +115,8 @@ Các lệnh có sẵn:
             Câu hỏi của {user_name}: {user_message}
             """
             
-            # Gọi Gemini API theo official documentation với tối ưu thinking
-            response = client.models.generate_content(
-                model="gemini-2.5-flash",
-                contents=prompt,
-                config=types.GenerateContentConfig(
-                    thinking_config=types.ThinkingConfig(thinking_budget=0)  # Disable thinking để tăng tốc
-                )
-            )
+            # Gọi Gemini API với syntax ổn định Python 3.8
+            response = model.generate_content(prompt)
             
             if response.text:
                 # Chia nhỏ tin nhắn nếu quá dài (Telegram limit: 4096 chars)

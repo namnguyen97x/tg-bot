@@ -58,7 +58,7 @@ sudo apt install git
 ### Bước 2: Clone repository
 
 ```bash
-git clone <repository-url>
+git clone https://github.com/namnguyen97x/tg-bot.git
 cd tg-bot
 ```
 
@@ -306,7 +306,7 @@ Dự án này sử dụng MIT License. Xem file `LICENSE` để biết thêm chi
 ## 📞 Liên hệ và hỗ trợ
 
 - **Email**: your-email@example.com
-- **GitHub Issues**: [Tạo issue mới](https://github.com/your-username/tg-bot/issues)
+- **GitHub Issues**: [Tạo issue mới](https://github.com/namnguyen97x/tg-bot/issues)
 - **Telegram**: @your_telegram_username
 
 ## 🙏 Lời cảm ơn

@@ -1,5 +1,5 @@
-# Use Python 3.8 slim image (Render compatible)
-FROM python:3.8-slim
+# Use Python 3.11 slim image (Compatible with python-telegram-bot 21.6)
+FROM python:3.11-slim
 
 # Set working directory
 WORKDIR /app

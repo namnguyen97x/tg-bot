@@ -1,0 +1,4 @@
+python-telegram-bot==20.7
+google-genai
+python-dotenv==1.0.0
+asyncio 

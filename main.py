@@ -3,8 +3,11 @@ import logging
 import asyncio
 from telegram import Update
 from telegram.ext import Application, CommandHandler, MessageHandler, filters, ContextTypes
-from google import genai
+import google.generativeai as genai
 from dotenv import load_dotenv
+from http.server import HTTPServer, BaseHTTPRequestHandler
+import threading
+import json
 
 # Load environment variables
 load_dotenv()
@@ -24,8 +27,9 @@ if not GEMINI_API_KEY or not TELEGRAM_BOT_TOKEN:
     logger.error("Missing required environment variables")
     exit(1)
 
-# Initialize Gemini client with new API
-gemini_client = genai.Client(api_key=GEMINI_API_KEY)
+# Initialize Gemini with stable API
+genai.configure(api_key=GEMINI_API_KEY)
+model = genai.GenerativeModel('gemini-pro')
 
 class TelegramGeminiBot:
     def __init__(self):
@@ -111,11 +115,8 @@ Các lệnh có sẵn:
             Câu hỏi của {user_name}: {user_message}
             """
             
-            # Gọi Gemini API với thư viện google-genai mới
-            response = gemini_client.models.generate_content(
-                model="gemini-2.0-flash-exp",
-                contents=prompt
-            )
+            # Gọi Gemini API với syntax ổn định
+            response = model.generate_content(prompt)
             
             if response.text:
                 # Chia nhỏ tin nhắn nếu quá dài (Telegram limit: 4096 chars)
@@ -147,9 +148,42 @@ Các lệnh có sẵn:
         logger.info("Starting Telegram Gemini Bot...")
         self.application.run_polling(allowed_updates=Update.ALL_TYPES)
 
+class HealthHandler(BaseHTTPRequestHandler):
+    def do_GET(self):
+        if self.path == '/health' or self.path == '/':
+            self.send_response(200)
+            self.send_header('Content-type', 'application/json')
+            self.end_headers()
+            health_data = {
+                "status": "healthy",
+                "service": "telegram-gemini-bot",
+                "version": "1.0.0"
+            }
+            self.wfile.write(json.dumps(health_data).encode())
+        else:
+            self.send_response(404)
+            self.end_headers()
+
+    def log_message(self, format, *args):
+        # Suppress HTTP server logs
+        pass
+
+def start_health_server():
+    """Start health check server"""
+    port = int(os.environ.get('PORT', 8080))
+    server = HTTPServer(('0.0.0.0', port), HealthHandler)
+    logger.info(f"Health server starting on port {port}")
+    server.serve_forever()
+
 def main():
     """Main function"""
     logger.info("Initializing Telegram Gemini Bot...")
+    
+    # Start health check server in background
+    health_thread = threading.Thread(target=start_health_server, daemon=True)
+    health_thread.start()
+    
+    # Start bot
     bot = TelegramGeminiBot()
     bot.run()
 
